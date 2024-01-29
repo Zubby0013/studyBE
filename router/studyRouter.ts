@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { createStudy } from "../controller/studyController";
-import { createStudyTest } from "../controller/see";
+import { createStudy, getStudentPoint } from "../controller/studyController";
 
 
 const router:Router = Router();
 
-router.route('/create-study-test/:userID').post(createStudyTest);
 router.route('/create-study/:userID').post(createStudy);
+router.route('/get-all-point/:studentID').get(getStudentPoint);
+
 
 export default router;

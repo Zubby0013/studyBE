@@ -34,6 +34,8 @@ export const createUser = async (
     }
   };
 
+
+
 export const verifyUser = async(req:Request, res:Response)=>{
     try {
         const {token} = req.body;
@@ -68,48 +70,44 @@ export const verifyUser = async(req:Request, res:Response)=>{
     }
 };
 
-export const loginUser = async(req:any, res:Response)=>{
-    try {
-        const {email,password } = req.body;
+export const loginUser = async (req: any, res: Response) => {
+  try {
+    const { email, password } = req.body;
 
-        const user = await userModel.findOne({email});
-        
-        if (user) {
-          if (user.password === password) {
-            if (user.verify) {
-              const token = jwt.sign({ name: user.name},"", {
-                expiresIn: "1d",
-              });
-    
-              req.session.isAuth = true;
-              req.session.isuserID = user._id;
-    
-              return res.status(201).json({
-                message: "welcome back",
-                data: token,
-                status: 201
-              });
-            } else {
-              return res.status(404).json({
-                message: "please check your password",
-              });
-            }
-          } else {
-            return res.status(404).json({
-              message: "Error reading your user email",
-            });
-          }
-        } else {
-          return res.status(404).json({
-            message: "Error finding user",
-          });
-        }
-    } catch (error:any) {
-        return res.status(404).json({
-            message: "error finding verifing",
-            data: error.message
+    const user = await userModel.findOne({ email: email });
+
+    if (user && user.verify) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (isPasswordValid) {
+        const token = jwt.sign({ _id: user._id, email: user.email }, "student", {
+          expiresIn: "1d",
         });
+
+        req.session.isAuth = true;
+        req.session.isuserID = user._id;
+
+        return res.status(201).json({
+          message: "Welcome back",
+          data: token,
+          status: 201,
+        });
+      } else {
+        return res.status(404).json({
+          message: "Incorrect password",
+        });
+      }
+    } else {
+      return res.status(404).json({
+        message: "User not found or not verified",
+      });
     }
+  } catch (error:any) {
+    return res.status(404).json({
+      message: "Error during login",
+      data: error.message,
+    });
+  }
 };
 
 export const logoutUser= async (
